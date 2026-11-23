@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="AI Meter">
+<rect width="64" height="64" rx="15" fill="#12302f"/>
+<g fill="none" stroke-width="6.4"><path d="M15.46 45.36A19 19 0 0 1 13.07 37.59" stroke="#a8f0d8"/><path d="M13.11 33.94A19 19 0 0 1 15.70 26.23" stroke="#a8f0d8"/><path d="M17.86 23.30A19 19 0 0 1 24.47 18.56" stroke="#a8f0d8"/><path d="M27.93 17.44A19 19 0 0 1 36.07 17.44" stroke="#a8f0d8"/><path d="M39.53 18.56A19 19 0 0 1 46.14 23.30" stroke="#2e5a56"/><path d="M48.30 26.23A19 19 0 0 1 50.89 33.94" stroke="#e3a33a"/><path d="M50.93 37.59A19 19 0 0 1 48.54 45.36" stroke="#e0543f"/></g>
+<path d="M32 36L38.50 24.74" stroke="#e6fff6" stroke-width="3.6" stroke-linecap="round"/>
+<circle cx="32" cy="36" r="4.6" fill="#e6fff6"/><circle cx="32" cy="36" r="1.8" fill="#12302f"/>
+<rect x="22" y="48.5" width="20" height="4" rx="1" fill="#a8f0d8" opacity=".4"/>
+</svg>

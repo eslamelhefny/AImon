@@ -1,0 +1,11 @@
+dist/
+build/
+*.egg-info/
+__pycache__/
+*.pyc
+.env
+*.vsix
+node_modules/
+tests/screenshots/
+brand/*.ttf
+docs/*.local.md

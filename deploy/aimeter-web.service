@@ -1,0 +1,19 @@
+[Unit]
+Description=aimeter dashboard
+After=network-online.target
+
+[Service]
+User=aimeter
+WorkingDirectory=/opt/aimeter
+EnvironmentFile=/opt/aimeter/.env
+ExecStart=/opt/aimeter/.venv/bin/python /opt/aimeter/aimeter.py serve
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/aimeter/data
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

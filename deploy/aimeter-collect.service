@@ -1,0 +1,16 @@
+[Unit]
+Description=aimeter: collect AI usage and send alerts
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=aimeter
+WorkingDirectory=/opt/aimeter
+EnvironmentFile=/opt/aimeter/.env
+ExecStart=/opt/aimeter/.venv/bin/python /opt/aimeter/aimeter.py collect
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/aimeter/data
+PrivateTmp=true

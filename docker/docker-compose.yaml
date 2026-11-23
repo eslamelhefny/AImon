@@ -1,0 +1,24 @@
+# AI Meter with Docker. Run from this folder:  docker compose up -d --build
+# Config and data live on the host in /opt/aimeter. Secrets go in .env (see .env.example).
+services:
+  aimeter:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      TZ: Africa/Cairo
+    volumes:
+      - /opt/aimeter:/data
+      # Optional: Hermes Agent's data, read for token usage only
+      # - hermes-data:/hermes
+    ports:
+      - '127.0.0.1:8787:8787'
+    mem_limit: 256m
+# volumes:
+#   hermes-data:
+#     external: true
+#     name: hermes-workspace_hermes-agent-data

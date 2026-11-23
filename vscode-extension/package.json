@@ -1,0 +1,49 @@
+{
+  "name": "ai-meter",
+  "displayName": "AI Meter",
+  "description": "Your AI plan limits, reset times, tokens and cost in the status bar: Claude, ChatGPT/Codex, Kimi, OpenCode Go, OpenRouter, DeepSeek and more.",
+  "version": "0.3.0",
+  "publisher": "eslamelhefny",
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "repository": { "type": "git", "url": "https://github.com/eslamelhefny/AImon" },
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other", "Visualization"],
+  "keywords": ["ai", "usage", "limits", "tokens", "claude", "codex", "openrouter", "quota", "rate limit"],
+  "extensionKind": ["ui", "workspace"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [{ "id": "aimeter", "title": "AI Meter", "icon": "media/activity.svg" }]
+    },
+    "views": {
+      "aimeter": [{ "type": "webview", "id": "aimeter.panel", "name": "Limits" }]
+    },
+    "commands": [
+      { "command": "aimeter.refresh", "title": "Refresh", "category": "AI Meter", "icon": "$(refresh)" },
+      { "command": "aimeter.checkNow", "title": "Check every provider now", "category": "AI Meter", "icon": "$(sync)" },
+      { "command": "aimeter.openDashboard", "title": "Open dashboard in browser", "category": "AI Meter", "icon": "$(link-external)" },
+      { "command": "aimeter.setToken", "title": "Set dashboard token", "category": "AI Meter" },
+      { "command": "aimeter.clearToken", "title": "Clear dashboard token", "category": "AI Meter" },
+      { "command": "aimeter.setServer", "title": "Set server address", "category": "AI Meter" }
+    ],
+    "menus": {
+      "view/title": [
+        { "command": "aimeter.checkNow", "when": "view == aimeter.panel", "group": "navigation@1" },
+        { "command": "aimeter.openDashboard", "when": "view == aimeter.panel", "group": "navigation@2" }
+      ]
+    },
+    "configuration": {
+      "title": "AI Meter",
+      "properties": {
+        "aimeter.serverUrl": { "type": "string", "default": "http://localhost:8787", "markdownDescription": "Address of your AI Meter. Run `aimeter` locally, or open an SSH tunnel to your server (`ssh -L 8787:127.0.0.1:8787 you@server`)." },
+        "aimeter.refreshSeconds": { "type": "number", "default": 60, "minimum": 15, "description": "How often to read the latest numbers." },
+        "aimeter.statusBar": { "type": "string", "enum": ["tightest", "off"], "enumDescriptions": ["Show the limit closest to running out", "Hide the status bar item"], "default": "tightest", "description": "What the status bar shows." },
+        "aimeter.notifyAt": { "type": "number", "default": 90, "minimum": 50, "maximum": 100, "description": "Notify when a plan limit passes this percent. Each limit notifies once per reset." },
+        "aimeter.includeRateLimits": { "type": "boolean", "default": false, "description": "Also show per-minute API rate limits in the panel." }
+      }
+    }
+  },
+  "scripts": { "package": "vsce package" }
+}

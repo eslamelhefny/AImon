@@ -1,0 +1,17 @@
+# AI Meter settings. Providers are connected from the dashboard
+# ("Connect a provider"), so this file can stay as it is.
+settings:
+  alert_thresholds: [0.5, 0.8, 0.95]   # alert at 50%, 80% and 95% of any limit
+  renewal_reminder_days: [7, 3, 1]
+  fx_to_usd: {USD: 1, EUR: 1.08, EGP: 0.0205}
+  dashboard:
+    host: 127.0.0.1                    # only this computer; use a tunnel or reverse proxy to share
+    port: 8787
+    token_env: AIMETER_DASHBOARD_TOKEN   # set this env var to require a password
+
+alerts:
+  telegram: {enabled: false, bot_token_env: TELEGRAM_BOT_TOKEN, chat_id_env: TELEGRAM_CHAT_ID}
+  webhook: {enabled: false, url_env: AIMETER_WEBHOOK_URL}
+
+api_accounts: []      # optional: providers defined here as well as in the dashboard
+subscriptions: []     # optional: fixed plans for renewal reminders (see config.example.yaml)

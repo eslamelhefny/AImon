@@ -1,0 +1,254 @@
+# AI Meter configuration. Copy to config.yaml and edit.
+# Secrets never go in this file: each entry names an environment variable,
+# and the values live in .env (same folder) or the systemd environment.
+
+settings:
+  db_path: data/monitor.db
+  # Alert when spend/cap/manual usage crosses these fractions (once per period)
+  alert_thresholds: [0.5, 0.8, 0.95]
+  # Remind this many days before a subscription renews
+  renewal_reminder_days: [7, 3, 1]
+  # Used to show every subscription as USD per month. Update now and then.
+  fx_to_usd:
+    USD: 1
+    EGP: 0.0205
+    EUR: 1.08
+  dashboard:
+    host: 127.0.0.1        # keep local; reach it over SSH tunnel or a reverse proxy
+    port: 8787
+    token_env: AIMETER_DASHBOARD_TOKEN   # required if you expose it beyond localhost
+
+alerts:
+  telegram:
+    enabled: true
+    bot_token_env: TELEGRAM_BOT_TOKEN
+    chat_id_env: TELEGRAM_CHAT_ID
+  webhook:                 # optional: n8n, Slack, Discord, Hermes, anything that takes JSON
+    enabled: false
+    url_env: AIMETER_WEBHOOK_URL
+
+# ---------------------------------------------------------------------------
+# Accounts shown as live widgets on the dashboard.
+#   provider:
+#     claude_sub        Claude Pro/Max plan: 5-hour + weekly limits and reset times
+#     kimi_code         Kimi Code plan: 5-hour window + plan quota
+#     opencode_go       OpenCode Go plan: 5-hour, weekly, monthly allowances
+#     nous              Nous Portal: rate limits (no public credits API)
+#     kimi_api          Moonshot / Kimi Open Platform balance
+#     codex_sub         ChatGPT plan (Codex): 5-hour + weekly limits and reset times
+#     anthropic_limits  Claude API rate limits (tokens/requests per minute)
+#     openai_limits     OpenAI API rate limits (tokens/requests per minute)
+#     anthropic | openai | openrouter | deepseek   spend, budgets, credits, caps
+#     manual            no API; log readings from the dashboard
+#   interval: seconds between checks (optional, sensible defaults per provider)
+# ---------------------------------------------------------------------------
+api_accounts:
+  # Tokens and cost for everything Hermes runs (any provider). Reads Hermes's
+  # session database, mounted into AI Meter at /hermes. No key needed.
+  - id: hermes
+    label: Hermes Agent
+    provider: hermes
+    state_db: /hermes/state.db
+    token_budgets: {daily: 5000000, weekly: 25000000}   # your own token limits (optional)
+
+  # Plan limits. No keys needed: click "Connect" on the widget and sign in.
+  # Every widget also accepts:
+  #   token_budgets: {daily: N, weekly: N, monthly: N}   gauges in tokens, with reset countdowns
+  #   token_limits:  {five_hour: N, seven_day: N}        exact token size of a plan window, if you know it
+  #   hermes_match:  [anthropic, claude]                 which Hermes providers count toward this widget
+  - id: claude-plan
+    label: Claude
+    provider: claude_sub
+    plan: Max
+    interval: 300
+    usage_url: https://claude.ai/settings/usage
+
+  - id: chatgpt-plan
+    label: ChatGPT / Codex
+    provider: codex_sub
+    plan: Plus
+    interval: 300
+    usage_url: https://chatgpt.com/codex/settings/usage
+
+  - id: kimi-code
+    label: Kimi Code
+    provider: kimi_code
+    api_key_env: KIMI_CODE_API_KEY          # key from the Kimi Code Console
+    plan: Allegro
+    usage_url: https://www.kimi.com/code/console
+
+  - id: opencode-go
+    label: OpenCode Go
+    provider: opencode_go
+    api_key_env: OPENCODE_GO_API_KEY        # your Go API key from opencode.ai
+    plan: Go
+    caps_usd: {rolling: 12, weekly: 30, monthly: 60}   # Go plan; Go Plus is higher
+    usage_url: https://opencode.ai/auth
+
+  # API rate limits: one tiny request per check (a fraction of a cent).
+  - id: anthropic-limits
+    label: Claude API limits
+    provider: anthropic_limits
+    api_key_env: ANTHROPIC_API_KEY          # a normal sk-ant-api... key
+    probe_model: claude-haiku-5-5
+    interval: 600
+
+  # - id: openai-limits
+  #   label: OpenAI API limits
+  #   provider: openai_limits
+  #   api_key_env: OPENAI_API_KEY
+  #   probe_model: gpt-5-nano               # any cheap chat model your key can use
+  #   interval: 600
+
+  # Spend, budgets and credits
+  - id: anthropic
+    label: Anthropic (Claude API)
+    provider: anthropic
+    api_key_env: ANTHROPIC_ADMIN_KEY        # sk-ant-admin... (Console > Settings > Admin keys)
+    monthly_budget: 100
+    daily_budget: 15
+    console_url: https://platform.claude.com/usage
+
+  - id: openai
+    label: OpenAI Platform
+    provider: openai
+    api_key_env: OPENAI_ADMIN_KEY           # admin key from platform.openai.com/settings/organization/admin-keys
+    monthly_budget: 50
+    console_url: https://platform.openai.com/usage
+
+  - id: openrouter
+    label: OpenRouter
+    provider: openrouter
+    api_key_env: OPENROUTER_API_KEY         # the key Hermes uses works; reports its cap and usage
+    management_key_env: OPENROUTER_MANAGEMENT_KEY   # optional: tokens + cost per model (Settings > Management keys)
+    monthly_budget: 30
+    low_balance: 5
+    console_url: https://openrouter.ai/activity
+
+  - id: nous
+    label: Nous Portal
+    provider: nous
+    api_key_env: NOUS_API_KEY
+    probe_model: Hermes-4-70B               # any model your key can use
+    usage_url: https://portal.nousresearch.com
+
+  - id: deepseek
+    label: DeepSeek
+    provider: deepseek
+    api_key_env: DEEPSEEK_API_KEY
+    low_balance: 3
+    console_url: https://platform.deepseek.com/usage
+
+  # - id: kimi-api
+  #   label: Kimi API (Moonshot)
+  #   provider: kimi_api
+  #   api_key_env: MOONSHOT_API_KEY
+  #   low_balance: 5
+  #   console_url: https://platform.kimi.ai/console
+
+  - id: gemini-api
+    label: Google AI Studio (Gemini API)
+    provider: manual                         # no public spend API; log readings from Cloud Billing
+    notes: Check console.cloud.google.com/billing and log month-to-date spend.
+    console_url: https://aistudio.google.com/usage
+
+# ---------------------------------------------------------------------------
+# Subscriptions: fixed plans, renewal reminders, optional manual usage readings
+#   cycle: weekly | monthly | quarterly | semiannual | yearly
+#   renews_on: any past or future renewal date; it rolls forward automatically
+#   limit_period: daily | weekly | monthly  (how often the usage cap resets)
+# Replace costs and dates with your real ones.
+# ---------------------------------------------------------------------------
+subscriptions:
+  # Chat and coding assistants
+  - id: claude
+    name: Claude
+    vendor: Anthropic
+    category: chat
+    plan: Max 5x
+    cost: 100
+    currency: USD
+    cycle: monthly
+    renews_on: 2026-12-05
+    limit_period: weekly
+    limits: 5-hour session window + weekly caps
+    usage_url: https://claude.ai/settings/usage
+
+  - id: chatgpt
+    name: ChatGPT
+    vendor: OpenAI
+    category: chat
+    plan: Plus
+    cost: 20
+    currency: USD
+    cycle: monthly
+    renews_on: 2026-12-12
+    limit_period: weekly
+    limits: per-model message caps, rolling windows
+    usage_url: https://chatgpt.com/#settings
+
+  - id: gemini
+    name: Google AI Pro
+    vendor: Google
+    category: chat
+    plan: AI Pro
+    cost: 20
+    currency: USD
+    cycle: monthly
+    renews_on: 2026-12-20
+    limits: daily prompt caps per model
+    usage_url: https://one.google.com/
+
+  # Infrastructure and creative SaaS
+  - id: hostinger-vps
+    name: Hostinger VPS (Hermes)
+    vendor: Hostinger
+    category: infrastructure
+    plan: KVM
+    cost: 120
+    currency: USD
+    cycle: yearly
+    renews_on: 2027-03-01
+    limits: CPU / RAM / bandwidth of the plan
+    usage_url: https://hpanel.hostinger.com/
+
+  - id: adobe
+    name: Adobe Creative Cloud
+    vendor: Adobe
+    category: creative
+    plan: All Apps
+    cost: 60
+    currency: USD
+    cycle: monthly
+    renews_on: 2026-12-01
+    limit_period: monthly
+    usage_limit: 1000                        # generative credits per month
+    limits: 1000 generative credits / month
+    usage_url: https://account.adobe.com/plans
+
+  - id: magnific
+    name: Magnific
+    vendor: Magnific
+    category: creative
+    plan: Pro
+    cost: 39
+    currency: USD
+    cycle: monthly
+    renews_on: 2026-12-08
+    limit_period: monthly
+    limits: monthly token allowance
+    usage_url: https://magnific.ai/
+
+  - id: n8n
+    name: n8n Cloud
+    vendor: n8n
+    category: automation
+    plan: Starter
+    cost: 24
+    currency: EUR
+    cycle: monthly
+    renews_on: 2026-12-15
+    limit_period: monthly
+    usage_limit: 2500                        # workflow executions
+    limits: 2,500 executions / month
+    usage_url: https://app.n8n.cloud/
